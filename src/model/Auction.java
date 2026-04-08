@@ -23,7 +23,12 @@ public class Auction implements Runnable {
 
     @Override
     public void run() {
-        System.out.println("\n--- Auction started: " + item.getName() + " ---");
+        System.out.println("\n🏆 =============================== 🏆");
+        System.out.println("📦 AUKTION STARTET");
+        System.out.println(item);
+        System.out.println("💰 Startpreis: " + startPrice + "€");
+        System.out.println("🔻 Mindestpreis: " + minPrice + "€");
+        System.out.println("🏆 =============================== 🏆\n");
 
         for (Bidder b : bidders) {
             b.setAuction(this);
@@ -42,16 +47,25 @@ public class Auction implements Runnable {
             // dynamische Reduktion
             currentPrice -= currentPrice * 0.05;
 
-            System.out.println("[Auction] " + item.getName() +
-                    " | Preis: " + oldPrice + " → " + currentPrice);
+            if (currentPrice <= minPrice) {
+                System.out.println("⚠️ Mindestpreis erreicht!");
+            }
+
+            System.out.println("📉 Preisupdate:");
+            System.out.println("➡️ " + oldPrice + "€ → " + currentPrice + "€");
+            System.out.println("---------------------------------");
         }
 
         active = false;
 
         if (winner == null) {
-            System.out.println("[Auction] Kein Käufer gefunden.");
+            System.out.println("❌ Kein Käufer gefunden. Artikel nicht verkauft.");
         } else {
-            System.out.println("[Auction] Verkauft an " + winner.getName());
+            System.out.println("\n🏆 =============================== 🏆");
+            System.out.println("🎉 VERKAUFT!");
+            System.out.println("👤 Gewinner: " + winner.getName());
+            System.out.println("💰 Preis: " + currentPrice + "€");
+            System.out.println("🏆 =============================== 🏆\n");
         }
     }
 
@@ -63,7 +77,9 @@ public class Auction implements Runnable {
 
         bidder.decreaseBudget(currentPrice);
 
-        System.out.println("Winner: " + bidder.getName() + " for " + currentPrice);
+        System.out.println("\n🔥 GEBOT ERFOLGREICH!");
+        System.out.println("👤 " + bidder.getName() + " kauft den Artikel!");
+        System.out.println("💰 Preis: " + currentPrice + "€\n");
     }
 
     public boolean isActive() {

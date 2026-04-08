@@ -23,8 +23,13 @@ public class Bidder extends User implements Runnable {
     @Override
     public void run() {
 
-        // 🔥 HIER einfügen
-        System.out.println("[Bidder] " + name + " gestartet | Typ: " + type + " | Budget: " + budget);
+        System.out.println("\n🏆 AUKTION STARTET 🏆\n");
+        System.out.println("=================================");
+        System.out.println("🚀 Bieter gestartet");
+        System.out.println("👤 Name: " + name);
+        System.out.println("🤖 Typ: " + type);
+        System.out.println("💰 Budget: " + budget + "€");
+        System.out.println("=================================");
 
         while (auction.isActive()) {
             try {
@@ -35,22 +40,22 @@ public class Bidder extends User implements Runnable {
 
             double price = auction.getCurrentPrice();
 
-            System.out.println("[Bidder] " + name + " prüft Preis: " + price);
+            System.out.println("\n🔎 " + name + " prüft aktuellen Preis: " + price + "€");
 
             if (price > budget) {
-                System.out.println("[Bidder] " + name + " hat nicht genug Budget.");
+                System.out.println("❌ " + name + " hat nicht genug Budget!");
                 continue;
             }
 
             double probability = calculateProbability(price);
 
             if (Math.random() < probability) {
-                System.out.println("[Bidder] " + name + " entscheidet sich zu kaufen!");
+                System.out.println("🔥 " + name + " gibt ein Gebot ab!");
 
                 auction.placeBid(this);
                 break;
             } else {
-                System.out.println("[Bidder] " + name + " wartet...");
+                System.out.println("⏳ " + name + " wartet...");
             }
         }
     }

@@ -13,11 +13,15 @@ public class Menu {
     public void start() {
 
         while (true) {
-            System.out.println("\n=== AUCTION PLATFORM ===");
-            System.out.println("1. Neue Auktion erstellen");
-            System.out.println("2. Simulation starten");
-            System.out.println("3. Report anzeigen");
-            System.out.println("0. Exit");
+            System.out.println("\n=================================");
+            System.out.println("🏠 AUCTION PLATFORM");
+            System.out.println("=================================");
+            System.out.println("1️⃣  Neue Auktion erstellen");
+            System.out.println("2️⃣  Simulation starten");
+            System.out.println("3️⃣  Report anzeigen");
+            System.out.println("0️⃣  Exit");
+            System.out.println("=================================");
+            System.out.print("👉 Auswahl: ");
 
             int choice = scanner.nextInt();
 
@@ -34,22 +38,23 @@ public class Menu {
 
         scanner.nextLine(); // clear buffer
 
-        System.out.println("Artikelname:");
+        System.out.print("\n📦 Artikelname eingeben: ");
         String name = scanner.nextLine();
 
-        System.out.println("Kategorie wählen:");
+        System.out.println("\n📂 Kategorie wählen:");
         Category[] categories = Category.values();
         for (int i = 0; i < categories.length; i++) {
-            System.out.println(i + ": " + categories[i]);
+            System.out.println("👉 " + i + " - " + categories[i]);
         }
+        System.out.print("Auswahl: ");
 
         int catChoice = scanner.nextInt();
         Category category = categories[catChoice];
 
-        System.out.println("Startpreis:");
+        System.out.print("💰 Startpreis: ");
         double start = scanner.nextDouble();
 
-        System.out.println("Mindestpreis:");
+        System.out.print("🔻 Mindestpreis: ");
         double min = scanner.nextDouble();
 
         List<Bidder> bidders = createBidders();
@@ -59,7 +64,8 @@ public class Menu {
 
         house.addAuction(auction);
 
-        System.out.println("Auktion erstellt!");
+        System.out.println("\n✅ Auktion erfolgreich erstellt!");
+        System.out.println("📦 " + item.getName() + " wurde hinzugefügt.\n");
     }
 
     private List<Bidder> createBidders() {
@@ -69,11 +75,17 @@ public class Menu {
         for (int i = 0; i < 5; i++) {
             list.add(new Bidder(
                     i,
-                    "Bidder-" + i,
+                    "Player_" + (i + 1),
                     500 + random.nextInt(2000),
                     BidderType.values()[random.nextInt(3)]
             ));
         }
+
+        System.out.println("\n👥 Bieter wurden erstellt:");
+        for (Bidder b : list) {
+            System.out.println("👤 " + b.getName());
+        }
+        System.out.println();
 
         return list;
     }
