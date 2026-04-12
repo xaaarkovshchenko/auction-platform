@@ -8,6 +8,5 @@ public class Auctioneer extends User implements Runnable {
 
     @Override
     public void run() {
-        // kann erweitert werden
     }
 }

@@ -9,6 +9,8 @@ public class Bidder extends User implements Runnable {
     private Auction auction;
     private Random random = new Random();
     private Category preferredCategory;
+    private static final Object PRINT_LOCK = new Object();
+    private double lastSeenPrice = -1;
 
     public Bidder(int id, String name, double budget, BidderType type) {
         super(id, name);
@@ -23,39 +25,72 @@ public class Bidder extends User implements Runnable {
     @Override
     public void run() {
 
-        System.out.println("\n🏆 AUKTION STARTET 🏆\n");
-        System.out.println("=================================");
-        System.out.println("🚀 Bieter gestartet");
-        System.out.println("👤 Name: " + name);
-        System.out.println("🤖 Typ: " + type);
-        System.out.println("💰 Budget: " + budget + "€");
-        System.out.println("=================================");
+        synchronized (PRINT_LOCK) {
 
-        while (auction.isActive()) {
+        }
+
+        while (true) {
+
+            // 👉 sofort beenden
+            if (!auction.isActive()) {
+                return;
+            }
+
             try {
-                Thread.sleep(300);
+                Thread.sleep(900);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
 
+            // 👉 nochmal check nach sleep
+            if (!auction.isActive()) {
+                return;
+            }
+
             double price = auction.getCurrentPrice();
 
-            System.out.println("\n🔎 " + name + " prüft aktuellen Preis: " + price + "€");
+            //  nur reagieren wenn neuer Preis
+            if (price == lastSeenPrice) {
+                continue;
+            }
+
+            lastSeenPrice = price;
+
+            if (!auction.isActive()) return;
+            synchronized (PRINT_LOCK) {
+                System.out.println("\n🔎 " + name + " prüft aktuellen Preis: " + price + "€");
+            }
 
             if (price > budget) {
-                System.out.println("❌ " + name + " hat nicht genug Budget!");
+                if (!auction.isActive()) return;
+
+                synchronized (PRINT_LOCK) {
+                    System.out.println("❌ " + name + " hat nicht genug Budget!");
+                }
                 continue;
             }
 
             double probability = calculateProbability(price);
 
-            if (Math.random() < probability) {
-                System.out.println("🔥 " + name + " gibt ein Gebot ab!");
+            if (!auction.isActive()) return;
+
+            if (random.nextDouble() < probability) {
+
+                if (!auction.isActive()) return;
+
+                synchronized (PRINT_LOCK) {
+                    System.out.println("🔥 " + name + " gibt ein Gebot ab!");
+                }
 
                 auction.placeBid(this);
-                break;
+                return;
+
             } else {
-                System.out.println("⏳ " + name + " wartet...");
+                if (!auction.isActive()) return;
+
+                synchronized (PRINT_LOCK) {
+                    System.out.println("⏳ " + name + " wartet...");
+                }
             }
         }
     }
@@ -84,5 +119,9 @@ public class Bidder extends User implements Runnable {
 
     public double getBudget() {
         return budget;
+    }
+
+    public BidderType getType() {
+        return type;
     }
 }

@@ -12,8 +12,7 @@ public class Simulation {
     public static void main(String[] args) {
 
         System.out.println("\n=================================");
-        System.out.println("🎮 AUKTIONS SIMULATION GESTARTET");
-        System.out.println("=================================\n");
+        System.out.println("\n 🎮 AUKTIONS SIMULATION GESTARTET!\n");
 
         Menu menu = new Menu();
         menu.start();
