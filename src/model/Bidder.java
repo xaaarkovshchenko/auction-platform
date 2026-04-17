@@ -8,9 +8,9 @@ public class Bidder extends User implements Runnable {
     private BidderType type;
     private Auction auction;
     private Random random = new Random();
-    private Category preferredCategory;
-    private static final Object PRINT_LOCK = new Object();
+
     private double lastSeenPrice = -1;
+    private String lastAction = "";
 
     public Bidder(int id, String name, double budget, BidderType type) {
         super(id, name);
@@ -22,16 +22,16 @@ public class Bidder extends User implements Runnable {
         this.auction = auction;
     }
 
+    private String prefix() {
+        return "[" + auction.getItem().getName() + "] ";
+    }
+
     @Override
     public void run() {
 
-        synchronized (PRINT_LOCK) {
 
-        }
+        while (!auction.isFinished()) {
 
-        while (true) {
-
-            // 👉 sofort beenden
             if (!auction.isActive()) {
                 return;
             }
@@ -39,17 +39,17 @@ public class Bidder extends User implements Runnable {
             try {
                 Thread.sleep(900);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                //  sofort stoppen wenn Thread beendet wird
+                return;
             }
 
-            // 👉 nochmal check nach sleep
-            if (!auction.isActive()) {
+            if (!auction.isActive() || auction.isFinished()) {
                 return;
             }
 
             double price = auction.getCurrentPrice();
 
-            //  nur reagieren wenn neuer Preis
+            // nur reagieren wenn Preis sich geändert hat
             if (price == lastSeenPrice) {
                 continue;
             }
@@ -57,15 +57,18 @@ public class Bidder extends User implements Runnable {
             lastSeenPrice = price;
 
             if (!auction.isActive()) return;
-            synchronized (PRINT_LOCK) {
-                System.out.println("\n🔎 " + name + " prüft aktuellen Preis: " + price + "€");
-            }
 
+            System.out.printf("%s[CHECK] %s prüft Preis: %.2f€\n",
+                    prefix(), name, price);
+
+            //  nicht genug Budget
             if (price > budget) {
-                if (!auction.isActive()) return;
 
-                synchronized (PRINT_LOCK) {
-                    System.out.println("❌ " + name + " hat nicht genug Budget!");
+                if (!"NO_MONEY".equals(lastAction)) {
+                    lastAction = "NO_MONEY";
+
+                    System.out.printf("%s[STOP ] %s hat kein Budget!\n",
+                            prefix(), name);
                 }
                 continue;
             }
@@ -78,18 +81,19 @@ public class Bidder extends User implements Runnable {
 
                 if (!auction.isActive()) return;
 
-                synchronized (PRINT_LOCK) {
-                    System.out.println("🔥 " + name + " gibt ein Gebot ab!");
-                }
+                System.out.printf("%s[BID  ] %s bietet!\n",
+                        prefix(), name);
 
                 auction.placeBid(this);
                 return;
 
             } else {
-                if (!auction.isActive()) return;
 
-                synchronized (PRINT_LOCK) {
-                    System.out.println("⏳ " + name + " wartet...");
+                if (!"WAIT".equals(lastAction)) {
+                    lastAction = "WAIT";
+
+                    System.out.printf("%s[WAIT ] %s wartet...\n",
+                            prefix(), name);
                 }
             }
         }

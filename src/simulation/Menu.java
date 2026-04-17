@@ -2,7 +2,7 @@ package simulation;
 
 import model.*;
 import service.*;
-
+import utils.ConsoleColors;
 import java.util.*;
 
 public class Menu {
@@ -15,62 +15,19 @@ public class Menu {
         while (true) {
 
             clearScreen();
+            printHeader();
 
-            System.out.println("=================================");
-            System.out.println("|     🏠 AUCTION PLATFORM       |");
-            System.out.println("=================================");
-            System.out.println("📊 Auktionen: " + house.getAuctions().size());
-            System.out.println("💰 Provision: " + house.getTotalCommission() + "€");
-            System.out.println("---------------------------------\n");
-
-            System.out.println("1️⃣  Neue Auktion erstellen");
-            System.out.println("2️⃣  Simulation starten");
-            System.out.println("3️⃣  Report anzeigen");
-            System.out.println("4️⃣  Auktionen anzeigen");
-            System.out.println("0️⃣  Exit");
-            System.out.println("=================================");
-            System.out.print("👉 Auswahl: ");
-
-            int choice;
-
-            try {
-                choice = scanner.nextInt();
-                scanner.nextLine();
-            } catch (InputMismatchException e) {
-                System.out.println("\n❌ Bitte nur Zahlen eingeben!\n");
-                scanner.nextLine();
-                waitForEnter();
-                continue;
-            }
-
-            if (choice < 0 || choice > 4) {
-                System.out.println("\n❌ Ungültige Auswahl!\n");
-                waitForEnter();
-                continue;
-            }
+            int choice = readChoice();
 
             switch (choice) {
+
                 case 1 -> createAuction();
 
-                case 2 -> {
-                    if (house.getAuctions().isEmpty()) {
-                        System.out.println("❌ Keine Auktionen vorhanden!\n");
-                        break;
-                    }
-
-                    System.out.print("⚠️ Simulation wirklich starten? (y/n): ");
-                    String confirm = scanner.nextLine();
-
-                    if (confirm.equalsIgnoreCase("y")) {
-                        house.startAll();
-                    } else {
-                        System.out.println("❌ Abgebrochen.");
-                    }
-                }
+                case 2 -> startSimulation();
 
                 case 3 -> Report.print(house);
 
-                case 4 -> showAuctions();
+                case 4 -> createTestAuctions();
 
                 case 0 -> {
                     System.out.println("👋 Programm beendet. Danke fürs Nutzen!");
@@ -79,6 +36,64 @@ public class Menu {
             }
 
             waitForEnter();
+        }
+    }
+
+    // ================= HEADER =================
+
+    private void printHeader() {
+
+        System.out.println("=================================");
+        System.out.println("|     🏠 AUCTION PLATFORM       |");
+        System.out.println("=================================");
+        System.out.println("📊 Auktionen: " + house.getAuctions().size());
+        System.out.printf("💰 Provision: %.2f€\n", house.getTotalCommission());
+        System.out.println("---------------------------------\n");
+
+        System.out.println("1️⃣  Neue Auktion erstellen");
+        System.out.println("2️⃣  Simulation starten");
+        System.out.println("3️⃣  Report anzeigen");
+        System.out.println("4️⃣  Test: 5 Auktionen erstellen");
+        System.out.println("0️⃣  Exit");
+        System.out.println("=================================");
+        System.out.print("👉 Auswahl: ");
+    }
+
+    private int readChoice() {
+        try {
+            int choice = scanner.nextInt();
+            scanner.nextLine();
+
+            if (choice < 0 || choice > 4) {
+                System.out.println("❌ Ungültige Auswahl!");
+                return -1;
+            }
+
+            return choice;
+
+        } catch (InputMismatchException e) {
+            System.out.println("❌ Bitte nur Zahlen eingeben!");
+            scanner.nextLine();
+            return -1;
+        }
+    }
+
+    // ================= ACTIONS =================
+
+    private void startSimulation() {
+
+        if (house.getAuctions().isEmpty()) {
+            System.out.println("❌ Keine Auktionen vorhanden!");
+            return;
+        }
+
+        System.out.print("⚠️ Simulation wirklich starten? (y/n): ");
+        String confirm = scanner.nextLine();
+
+        if (confirm.equalsIgnoreCase("y")) {
+            house.startAll();
+        } else {
+            System.out.println("❌ Abgebrochen.");
         }
     }
 
@@ -93,13 +108,22 @@ public class Menu {
             List<Bidder> bidders = createBidders();
 
             Item item = new Item(name, category);
-            Auction auction = new Auction(item, start, min, bidders);
+
+            int index = house.getAuctions().size();
+
+            Auction auction = new Auction(
+                    item,
+                    start,
+                    min,
+                    bidders,
+                    getColor(index)
+            );
 
             house.addAuction(auction);
 
             System.out.println("\n✅ Auktion erfolgreich erstellt!");
-            System.out.println("📦 " + item.getName() + " wurde hinzugefügt.");
-            System.out.println("📊 Anzahl Bieter: " + bidders.size());
+            System.out.println("📦 " + item.getName());
+            System.out.println("📊 Bieter: " + bidders.size());
 
         } catch (RuntimeException e) {
             System.out.println(e.getMessage());
@@ -107,122 +131,74 @@ public class Menu {
         }
     }
 
-    private void showAuctions() {
+    private void createTestAuctions() {
 
-        List<Auction> auctions = house.getAuctions();
+        Random random = new Random();
 
-        if (auctions.isEmpty()) {
-            System.out.println("❌ Keine Auktionen vorhanden!");
-            return;
+        for (int i = 0; i < 5; i++) {
+
+            List<Bidder> bidders = createBidders();
+
+            Item item = new Item(
+                    "Item_" + (i + 1),
+                    Category.values()[i % Category.values().length]
+            );
+
+            Auction auction = new Auction(
+                    item,
+                    1000 + random.nextInt(2000),
+                    500 + random.nextInt(1000),
+                    bidders,
+                    getColor(i)
+            );
+
+            house.addAuction(auction);
         }
 
-        System.out.println("\n📋 Alle Auktionen:");
-        System.out.println("-------------------------------------------------");
-
-        for (Auction a : auctions) {
-            String status = a.isSold() ? "✅ SOLD" : "⏳ AKTIV";
-
-            System.out.println("📦 " + a.getItem().getName()
-                    + " | 💰 Start: " + a.getStartPrice()
-                    + " | Status: " + status);
-        }
-
-        System.out.println("-------------------------------------------------");
+        System.out.println("\n🔥 5 Test-Auktionen erstellt!");
     }
 
+    // ================= INPUT =================
+
     private String readName() {
-        for (int i = 1; i <= 3; i++) {
-            System.out.print("\n📦 Artikelname eingeben: ");
-            String name = scanner.nextLine();
-
-            if (!name.trim().isEmpty() && name.matches(".*[a-zA-ZäöüÄÖÜ].*")) {
-                return name;
-            }
-
-            System.out.println("❌ Ungültiger Name! Versuch " + i + "/3");
-        }
-
-        throw new RuntimeException("❌ Zu viele Fehler beim Namen!");
+        System.out.print("\n📦 Artikelname: ");
+        return scanner.nextLine();
     }
 
     private Category readCategory() {
+
         Category[] categories = Category.values();
 
-        for (int i = 1; i <= 3; i++) {
-            System.out.println("\n📂 Kategorie wählen:");
+        System.out.println("\n📂 Kategorie wählen:");
 
-            for (int j = 0; j < categories.length; j++) {
-                System.out.println("👉 " + j + " - " + categories[j]);
-            }
-
-            System.out.print("Auswahl: ");
-
-            if (!scanner.hasNextInt()) {
-                System.out.println("❌ Bitte Zahl eingeben! Versuch " + i + "/3");
-                scanner.next();
-                continue;
-            }
-
-            int choice = scanner.nextInt();
-            scanner.nextLine();
-
-            if (choice >= 0 && choice < categories.length) {
-                return categories[choice];
-            }
-
-            System.out.println("❌ Ungültige Auswahl! Versuch " + i + "/3");
+        for (int i = 0; i < categories.length; i++) {
+            System.out.println(i + " -> " + categories[i]);
         }
 
-        throw new RuntimeException("❌ Zu viele Fehler bei Kategorie!");
+        int choice = scanner.nextInt();
+        scanner.nextLine();
+
+        return categories[Math.max(0, Math.min(choice, categories.length - 1))];
     }
 
     private double readStartPrice() {
-        for (int i = 1; i <= 3; i++) {
-            System.out.print("💰 Startpreis: ");
-
-            if (!scanner.hasNextDouble()) {
-                System.out.println("❌ Zahl eingeben! Versuch " + i + "/3");
-                scanner.next();
-                continue;
-            }
-
-            double value = scanner.nextDouble();
-            scanner.nextLine();
-
-            if (value > 0) {
-                return value;
-            }
-
-            System.out.println("❌ Muss > 0 sein! Versuch " + i + "/3");
-        }
-
-        throw new RuntimeException("❌ Zu viele Fehler beim Startpreis!");
+        System.out.print("💰 Startpreis: ");
+        double value = scanner.nextDouble();
+        scanner.nextLine();
+        return value;
     }
 
     private double readMinPrice(double start) {
-        for (int i = 1; i <= 3; i++) {
-            System.out.print("🔻 Mindestpreis: ");
-
-            if (!scanner.hasNextDouble()) {
-                System.out.println("❌ Zahl eingeben! Versuch " + i + "/3");
-                scanner.next();
-                continue;
-            }
-
-            double value = scanner.nextDouble();
-            scanner.nextLine();
-
-            if (value > 0 && value < start) {
-                return value;
-            }
-
-            System.out.println("❌ Muss > 0 und < Startpreis sein! Versuch " + i + "/3");
-        }
-
-        throw new RuntimeException("❌ Zu viele Fehler beim Mindestpreis!");
+        System.out.print("🔻 Mindestpreis: ");
+        double value = scanner.nextDouble();
+        scanner.nextLine();
+        return value;
     }
 
+    // ================= BIDDERS =================
+
     private List<Bidder> createBidders() {
+
         List<Bidder> list = new ArrayList<>();
         Random random = new Random();
 
@@ -235,27 +211,45 @@ public class Menu {
             ));
         }
 
+        printBiddersTable(list);
+
+        return list;
+    }
+
+    private void printBiddersTable(List<Bidder> list) {
+
         System.out.println("\n👥 Bieter Übersicht:");
         System.out.println("-------------------------------------------------");
-        System.out.printf("| %-10s | %-12s | %-10s |\n", "👤 Name", "🤖 Typ", "💰 Budget");
+
+        System.out.printf("| %-12s | %-12s | %-10s |\n",
+                "👤 Name", "🤖 Typ", "💰 Budget");
+
         System.out.println("-------------------------------------------------");
 
         for (Bidder b : list) {
-            System.out.printf("| %-10s | %-12s | %-10.2f |\n",
+            System.out.printf("| %-12s | %-12s | %-10.2f |\n",
                     b.getName(),
                     b.getType(),
                     b.getBudget());
         }
 
         System.out.println("-------------------------------------------------");
-
-        return list;
     }
 
-    // 🔥 HELPER METHODS
+    // ================= UTILS =================
+
+    private String getColor(int i) {
+        String[] colors = {
+                ConsoleColors.RED,
+                ConsoleColors.GREEN,
+                ConsoleColors.YELLOW,
+                ConsoleColors.CYAN
+        };
+        return colors[i % colors.length];
+    }
 
     private void waitForEnter() {
-        System.out.println("\n⏳ Drücke Enter zum Fortfahren...");
+        System.out.println("\n⏳ Enter drücken...");
         scanner.nextLine();
     }
 

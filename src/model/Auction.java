@@ -3,7 +3,6 @@ package model;
 import utils.ConsoleColors;
 import java.util.List;
 import java.util.ArrayList;
-import utils.Logger;
 
 public class Auction implements Runnable {
 
@@ -11,34 +10,39 @@ public class Auction implements Runnable {
     private double startPrice;
     private double minPrice;
     private double currentPrice;
+
     private volatile boolean active = true;
+    private volatile boolean finished = false;
+
     private List<Double> priceHistory = new ArrayList<>();
     private boolean finalRound = false;
+
     private List<Bidder> bidders;
     private Bidder winner;
     private List<Thread> bidderThreads = new ArrayList<>();
 
-    public Auction(Item item, double startPrice, double minPrice, List<Bidder> bidders) {
+    private static final Object PRINT_LOCK = new Object();
+    private String color;
+
+    public Auction(Item item, double startPrice, double minPrice, List<Bidder> bidders, String color) {
         this.item = item;
         this.startPrice = startPrice;
         this.minPrice = minPrice;
         this.currentPrice = startPrice;
         this.bidders = bidders;
+        this.color = color;
+    }
+
+    private String prefix() {
+        return color + "[" + item.getName() + "] " + ConsoleColors.RESET;
     }
 
     @Override
     public void run() {
 
-        System.out.println("\n🏆 =============================== 🏆");
-        Logger.info("Auktion gestartet: " + item.getName());
-        System.out.println("📦 AUKTION STARTET");
-        printBiddersTable();
-        System.out.println(item);
-        System.out.println("💰 Startpreis: " + startPrice + "€");
-        System.out.println("🔻 Mindestpreis: " + minPrice + "€");
-        System.out.println("🏆 =============================== 🏆\n");
+        printAuctionHeader();
 
-        //  Threads starten
+        // 🔥 START BIDDERS
         for (Bidder b : bidders) {
             b.setAuction(this);
             Thread t = new Thread(b, b.getName());
@@ -50,94 +54,103 @@ public class Auction implements Runnable {
 
             try {
                 Thread.sleep(1000);
-                if (!active) break;
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                break;
             }
+
+            if (!active) break;
 
             double oldPrice = currentPrice;
 
-            //  Fortschritt berechnen
             double progress = (startPrice - currentPrice) / (startPrice - minPrice);
-
-            //  dynamische Reduktion
             double reductionRate = 0.02 + (progress * 0.08);
-
-            //  Zufall für Realismus
             double randomFactor = 0.9 + (Math.random() * 0.2);
 
             double newPrice = currentPrice - (currentPrice * reductionRate * randomFactor);
 
-            //  nicht unter Mindestpreis
             if (newPrice < minPrice) {
                 newPrice = minPrice;
             }
 
-            //  runden
             currentPrice = Math.round(newPrice * 100.0) / 100.0;
 
-            Logger.event("Preis geändert von " + oldPrice + "€ auf " + currentPrice + "€");
             priceHistory.add(currentPrice);
 
-            System.out.println("📉 Preisupdate:");
-            System.out.printf("➡️ %.2f€ → %.2f€\n", oldPrice, currentPrice);
-            System.out.println("---------------------------------");
+            System.out.println(prefix() + "📉 Preisupdate:");
+            System.out.printf(prefix() + "➡️ %.2f€ → %.2f€\n", oldPrice, currentPrice);
+            System.out.println(color + "═══════════════════════════════════" + ConsoleColors.RESET);
 
-            //  FINAL ROUND
+            // FINAL ROUND
             if (currentPrice == minPrice && !finalRound) {
 
                 finalRound = true;
 
-                Logger.info("🔥 Letzte Runde gestartet (Mindestpreis erreicht)");
-                System.out.println("🔥 LETZTE RUNDE! Bieter haben letzte Chance!");
+                System.out.println(prefix() + "🔥 LETZTE RUNDE! Letzte Chance!");
 
                 try {
-                    for (int i = 3; i > 0; i--) {
-                        System.out.println("⏳ " + i + "...");
-                        Thread.sleep(500);
-                    }
+                    Thread.sleep(1500);
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    break;
                 }
 
                 continue;
             }
 
-            //  nach final round wirklich beenden
             if (currentPrice == minPrice && finalRound) {
                 break;
             }
         }
 
+        // 🔥 STOP AUCTION
         active = false;
+        finished = true;
 
-        //  Ergebnis
-        if (winner == null) {
-            Logger.info("Auktion beendet - kein Käufer gefunden");
-
-            System.out.println("❌ Kein Käufer gefunden. Artikel nicht verkauft.");
-            printRanking();
-
-        } else {
-            Logger.success("Auktion beendet - Gewinner: "
-                    + winner.getName() + " | Preis: " + currentPrice + "€");
-
-            System.out.println("\n🏆 =============================== 🏆");
-            System.out.println(ConsoleColors.GREEN + "🎉 VERKAUFT!" + ConsoleColors.RESET);
-            System.out.println("👤 Gewinner: " + winner.getName());
-            System.out.println("💰 Preis: " + currentPrice + "€");
-            System.out.println("🏆 =============================== 🏆\n");
+        // 🔥 INTERRUPT ALL BIDDERS
+        for (Thread t : bidderThreads) {
+            t.interrupt();
         }
 
-        printPriceHistory();
-
-        //  auf Threads warten
+        // 🔥 WAIT ALL
         for (Thread t : bidderThreads) {
             try {
                 t.join();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+        }
+
+        // ❌ УДАЛЕНО:
+        // printResult();
+        // printPriceHistory();
+    }
+
+    private void printAuctionHeader() {
+        synchronized (PRINT_LOCK) {
+
+            System.out.println(color + "\n🏆 =============================== 🏆" + ConsoleColors.RESET);
+
+            System.out.println(color + "📦 AUKTION: " + item.getName() + ConsoleColors.RESET);
+            System.out.println(color + "📂 Kategorie: " + item.getCategory() + ConsoleColors.RESET);
+            System.out.printf(color + "💰 Startpreis: %.2f€\n" + ConsoleColors.RESET, startPrice);
+            System.out.printf(color + "🔻 Mindestpreis: %.2f€\n" + ConsoleColors.RESET, minPrice);
+
+            System.out.println(color + "\n👥 Bieter Übersicht:" + ConsoleColors.RESET);
+            System.out.println(color + "-------------------------------------------------" + ConsoleColors.RESET);
+
+            System.out.printf(color + "| %-12s | %-12s | %-10s |\n" + ConsoleColors.RESET,
+                    "👤 Name", "🤖 Typ", "💰 Budget");
+
+            System.out.println(color + "-------------------------------------------------" + ConsoleColors.RESET);
+
+            for (Bidder b : bidders) {
+                System.out.printf(color + "| %-12s | %-12s | %-10.2f€ |\n" + ConsoleColors.RESET,
+                        b.getName(),
+                        b.getType(),
+                        b.getBudget());
+            }
+
+            System.out.println(color + "-------------------------------------------------" + ConsoleColors.RESET);
+            System.out.println(color + "🏆 =============================== 🏆\n" + ConsoleColors.RESET);
         }
     }
 
@@ -149,16 +162,19 @@ public class Auction implements Runnable {
 
         bidder.decreaseBudget(currentPrice);
 
-        Logger.success("Gebot abgegeben von " + bidder.getName()
-                + " für " + currentPrice + "€");
-
-        System.out.println("\n🔥 GEBOT ERFOLGREICH!");
-        System.out.println("👤 " + bidder.getName() + " kauft den Artikel!");
-        System.out.println("💰 Preis: " + currentPrice + "€\n");
+        synchronized (PRINT_LOCK) {
+            System.out.println(prefix() + "🔥 GEBOT ERFOLGREICH!");
+            System.out.println(prefix() + "👤 " + bidder.getName() + " kauft den Artikel!");
+            System.out.printf(prefix() + "💰 Preis: %.2f€\n\n", currentPrice);
+        }
     }
 
     public boolean isActive() {
         return active;
+    }
+
+    public boolean isFinished() {
+        return finished;
     }
 
     public double getCurrentPrice() {
@@ -179,39 +195,5 @@ public class Auction implements Runnable {
 
     public Item getItem() {
         return item;
-    }
-
-    public void printRanking() {
-        System.out.println("\n🏆 Bieter Ranking:");
-
-        bidders.stream()
-                .sorted((a, b) -> Double.compare(b.getBudget(), a.getBudget()))
-                .forEach(b -> System.out.println(
-                        "👤 " + b.getName() + " | 💰 " + b.getBudget() + "€"
-                ));
-    }
-
-    public void printPriceHistory() {
-        System.out.println("\n📈 Preisverlauf:");
-
-        for (double p : priceHistory) {
-            System.out.println("➡️ " + p + "€");
-        }
-    }
-
-    private void printBiddersTable() {
-        System.out.println("\n👥 Bieter Übersicht:");
-        System.out.println("-------------------------------------------------");
-        System.out.printf("| %-10s | %-12s | %-10s |\n", "👤 Name", "🤖 Typ", "💰 Budget");
-        System.out.println("-------------------------------------------------");
-
-        for (Bidder b : bidders) {
-            System.out.printf("| %-10s | %-12s | %-10.2f |\n",
-                    b.getName(),
-                    b.getType(),
-                    b.getBudget());
-        }
-
-        System.out.println("-------------------------------------------------\n");
     }
 }

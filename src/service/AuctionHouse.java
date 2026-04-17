@@ -25,20 +25,54 @@ public class AuctionHouse {
     }
 
     public void startAll() {
-        for (Auction auction : auctions) {
-            Thread t = new Thread(auction);
-            t.start();
 
+        List<Thread> threads = new ArrayList<>();
+
+        System.out.println("\n🚀 STARTE ALLE AUKTIONEN PARALLEL...\n");
+
+        // 🔥 1. ALLE STARTEN
+        for (Auction auction : auctions) {
+            Thread t = new Thread(auction, auction.getItem().getName());
+            threads.add(t);
+            t.start();
+        }
+
+        // 🔥 2. WARTEN BIS ALLE FERTIG
+        for (Thread t : threads) {
             try {
                 t.join();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+        }
+
+        // 🔥 3. ERST JETZT → ALLE ERGEBNISSE
+        System.out.println("\n\n🏁 ===== ALLE AUKTIONEN BEENDET =====");
+
+        for (Auction auction : auctions) {
+
+            System.out.println("\n📊 ===== AUKTION ABGESCHLOSSEN =====");
+            System.out.println("📦 Artikel: " + auction.getItem().getName());
 
             if (auction.isSold()) {
-                totalCommission += auction.getFinalPrice() * 0.01;
+
+                double price = auction.getFinalPrice();
+                double commission = price * 0.01;
+
+                totalCommission += commission;
+
+                System.out.printf("💰 Verkaufspreis: %.2f€\n", price);
+                System.out.printf("🏦 Provision (1%%): %.2f€\n", commission);
+
+            } else {
+                System.out.println("❌ Nicht verkauft");
             }
+
+            System.out.println("====================================");
         }
+
+        System.out.println("\n💰 Gesamtprovision: " + String.format("%.2f", totalCommission) + "€");
+        System.out.println("✅ Alle Auktionen sind beendet!\n");
     }
 
     public List<Auction> getAuctions() {

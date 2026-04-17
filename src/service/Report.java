@@ -39,7 +39,7 @@ public class Report {
 
         double avg = sold > 0 ? revenue / sold : 0;
 
-        // 🔥 ÜBERSICHT
+        //  ÜBERSICHT
         System.out.println("📈 Übersicht:");
         System.out.println("➡️ Gesamt Auktionen: " + total);
         System.out.println("➡️ Verkauft: " + sold);
@@ -52,7 +52,7 @@ public class Report {
             System.out.printf("🏆 Beste Auktion: %.2f€\n", highestPrice);
         }
 
-        // 🔥 TABELLE
+        //  TABELLE
         System.out.println("\n📋 Auktionen:");
         System.out.println("------------------------------------------------------------------");
         System.out.printf("| %-12s | %-10s | %-10s | %-10s |\n",
