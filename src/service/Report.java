@@ -2,19 +2,22 @@ package service;
 
 import model.Auction;
 import java.util.List;
+import model.Bidder;
+
 
 public class Report {
 
     public static void print(AuctionHouse house) {
 
-        List<Auction> auctions = house.getAuctions();
+        // 🔥 ИСТОРИЯ
+        List<Auction> auctions = house.getHistory();
 
         System.out.println("\n📊 =============================== 📊");
         System.out.println("📊           REPORT               📊");
         System.out.println("📊 =============================== 📊\n");
 
         if (auctions.isEmpty()) {
-            System.out.println("❌ Keine Auktionen vorhanden.\n");
+            System.out.println("❌ Keine abgeschlossenen Auktionen vorhanden.\n");
             return;
         }
 
@@ -26,6 +29,9 @@ public class Report {
         double highestPrice = 0;
 
         for (Auction a : auctions) {
+
+            if (!a.isFinished()) continue;
+
             if (a.isSold()) {
                 sold++;
                 revenue += a.getFinalPrice();
@@ -39,36 +45,59 @@ public class Report {
 
         double avg = sold > 0 ? revenue / sold : 0;
 
-        //  ÜBERSICHT
+        // 🔥 ÜBERSICHT
         System.out.println("📈 Übersicht:");
         System.out.println("➡️ Gesamt Auktionen: " + total);
         System.out.println("➡️ Verkauft: " + sold);
         System.out.println("➡️ Nicht verkauft: " + (total - sold));
         System.out.printf("➡️ Umsatz: %.2f€\n", revenue);
         System.out.printf("➡️ Durchschnittspreis: %.2f€\n", avg);
-        System.out.printf("➡️ Provision: %.2f€\n", house.getTotalCommission());
+        System.out.printf("➡️ Gesamtprovision: %.2f€\n", house.getTotalCommission());
 
         if (bestAuction != null) {
-            System.out.printf("🏆 Beste Auktion: %.2f€\n", highestPrice);
+            System.out.printf("🏆 Beste Auktion: %s (%.2f€)\n",
+                    bestAuction.getItem().getName(),
+                    highestPrice);
         }
 
-        //  TABELLE
-        System.out.println("\n📋 Auktionen:");
-        System.out.println("------------------------------------------------------------------");
-        System.out.printf("| %-12s | %-10s | %-10s | %-10s |\n",
-                "Item", "Start", "Final", "Status");
-        System.out.println("------------------------------------------------------------------");
+        // 🔥 TABELLE
+        System.out.println("\n📋 Alle Auktionen (History):");
+        System.out.println("------------------------------------------------------------------------------------------");
+        System.out.printf("| %-10s | %-10s | %-10s | %-12s | %-12s | %-12s |\n",
+                "Item", "Start", "Final", "Status", "Winner", "Type");
+        System.out.println("------------------------------------------------------------------------------------------");
 
         for (Auction a : auctions) {
-            String status = a.isSold() ? "✅ SOLD" : "❌ OPEN";
 
-            System.out.printf("| %-12s | %-10.2f | %-10.2f | %-10s |\n",
+            String status;
+            String winnerName = "-";
+            String bidderType = "-";
+
+            if (!a.isFinished()) {
+                status = "⏳ RUNNING";
+            } else if (a.isSold()) {
+                status = "✅ SOLD";
+
+                Bidder winner = a.getWinner();
+                if (winner != null) {
+                    winnerName = winner.getName();
+                    bidderType = winner.getType().toString();
+                }
+
+            } else {
+                status = "❌ NOT SOLD";
+            }
+
+            System.out.printf("| %-10s | %-10.2f | %-10.2f | %-12s | %-12s | %-12s |\n",
                     a.getItem().getName(),
                     a.getStartPrice(),
                     a.getFinalPrice(),
-                    status);
+                    status,
+                    winnerName,
+                    bidderType);
         }
 
-        System.out.println("------------------------------------------------------------------\n");
+        System.out.println("------------------------------------------------------------------------------------------\n");
+
     }
 }

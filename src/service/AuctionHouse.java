@@ -8,7 +8,13 @@ import java.util.List;
 public class AuctionHouse {
 
     private static AuctionHouse instance;
-    private List<Auction> auctions = new ArrayList<>();
+
+    // АКТИВНЫЕ аукции (текущая симуляция)
+    private List<Auction> activeAuctions = new ArrayList<>();
+
+    // ИСТОРИЯ (для Report)
+    private List<Auction> history = new ArrayList<>();
+
     private double totalCommission = 0;
 
     private AuctionHouse() {}
@@ -20,24 +26,33 @@ public class AuctionHouse {
         return instance;
     }
 
+    // ================= ADD =================
+
     public void addAuction(Auction auction) {
-        auctions.add(auction);
+        activeAuctions.add(auction);
     }
 
+    // ================= START =================
+
     public void startAll() {
+
+        if (activeAuctions.isEmpty()) {
+            System.out.println("❌ Keine Auktionen vorhanden!");
+            return;
+        }
 
         List<Thread> threads = new ArrayList<>();
 
         System.out.println("\n🚀 STARTE ALLE AUKTIONEN PARALLEL...\n");
 
-        // 🔥 1. ALLE STARTEN
-        for (Auction auction : auctions) {
+        // ALLE STARTEN
+        for (Auction auction : activeAuctions) {
             Thread t = new Thread(auction, auction.getItem().getName());
             threads.add(t);
             t.start();
         }
 
-        // 🔥 2. WARTEN BIS ALLE FERTIG
+        // WARTEN BIS ALLE FERTIG
         for (Thread t : threads) {
             try {
                 t.join();
@@ -46,10 +61,10 @@ public class AuctionHouse {
             }
         }
 
-        // 🔥 3. ERST JETZT → ALLE ERGEBNISSE
+        // 🔥 3. ERGEBNISSE AUSGEBEN
         System.out.println("\n\n🏁 ===== ALLE AUKTIONEN BEENDET =====");
 
-        for (Auction auction : auctions) {
+        for (Auction auction : activeAuctions) {
 
             System.out.println("\n📊 ===== AUKTION ABGESCHLOSSEN =====");
             System.out.println("📦 Artikel: " + auction.getItem().getName());
@@ -73,10 +88,24 @@ public class AuctionHouse {
 
         System.out.println("\n💰 Gesamtprovision: " + String.format("%.2f", totalCommission) + "€");
         System.out.println("✅ Alle Auktionen sind beendet!\n");
+
+        //  ВАЖНО → ПЕРЕНОС В HISTORY
+        history.addAll(activeAuctions);
+
+        //  5. ОЧИСТКА ТЕКУЩИХ
+        activeAuctions.clear();
     }
 
+    // ================= GETTERS =================
+
+    // для Menu (активные)
     public List<Auction> getAuctions() {
-        return auctions;
+        return activeAuctions;
+    }
+
+    // для Report (ВСЕ)
+    public List<Auction> getHistory() {
+        return history;
     }
 
     public double getTotalCommission() {

@@ -118,10 +118,6 @@ public class Auction implements Runnable {
                 e.printStackTrace();
             }
         }
-
-        // ❌ УДАЛЕНО:
-        // printResult();
-        // printPriceHistory();
     }
 
     private void printAuctionHeader() {
@@ -129,12 +125,15 @@ public class Auction implements Runnable {
 
             System.out.println(color + "\n🏆 =============================== 🏆" + ConsoleColors.RESET);
 
+            // 🔥 ГЛАВНЫЙ ЗАГОЛОВОК
             System.out.println(color + "📦 AUKTION: " + item.getName() + ConsoleColors.RESET);
             System.out.println(color + "📂 Kategorie: " + item.getCategory() + ConsoleColors.RESET);
             System.out.printf(color + "💰 Startpreis: %.2f€\n" + ConsoleColors.RESET, startPrice);
             System.out.printf(color + "🔻 Mindestpreis: %.2f€\n" + ConsoleColors.RESET, minPrice);
 
-            System.out.println(color + "\n👥 Bieter Übersicht:" + ConsoleColors.RESET);
+            // 🔥 ВАЖНО: убрали дубликат item.getName()
+
+            System.out.println(color + "\n👥 Bieter für: " + item.getName() + ConsoleColors.RESET);
             System.out.println(color + "-------------------------------------------------" + ConsoleColors.RESET);
 
             System.out.printf(color + "| %-12s | %-12s | %-10s |\n" + ConsoleColors.RESET,
@@ -195,5 +194,11 @@ public class Auction implements Runnable {
 
     public Item getItem() {
         return item;
+    }
+    public double getMinPrice() {
+        return minPrice;
+    }
+    public Bidder getWinner() {
+        return winner;
     }
 }

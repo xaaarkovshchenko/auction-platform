@@ -13,7 +13,7 @@ public class Menu {
     public void start() {
 
         while (true) {
-
+            pushUp();
             clearScreen();
             printHeader();
 
@@ -39,14 +39,14 @@ public class Menu {
         }
     }
 
-    // ================= HEADER =================
+// ================= HEADER =================
 
     private void printHeader() {
 
         System.out.println("=================================");
         System.out.println("|     🏠 AUCTION PLATFORM       |");
         System.out.println("=================================");
-        System.out.println("📊 Auktionen: " + house.getAuctions().size());
+        System.out.println("📊 Active Auktionen: " + house.getAuctions().size());
         System.out.printf("💰 Provision: %.2f€\n", house.getTotalCommission());
         System.out.println("---------------------------------\n");
 
@@ -78,7 +78,7 @@ public class Menu {
         }
     }
 
-    // ================= ACTIONS =================
+// ================= ACTIONS =================
 
     private void startSimulation() {
 
@@ -105,7 +105,7 @@ public class Menu {
             double start = readStartPrice();
             double min = readMinPrice(start);
 
-            List<Bidder> bidders = createBidders();
+            List<Bidder> bidders = createBidders(name);
 
             Item item = new Item(name, category);
 
@@ -137,10 +137,12 @@ public class Menu {
 
         for (int i = 0; i < 5; i++) {
 
-            List<Bidder> bidders = createBidders();
+            String itemName = "Item_" + (i + 1);
+
+            List<Bidder> bidders = createBidders(itemName);
 
             Item item = new Item(
-                    "Item_" + (i + 1),
+                    itemName,
                     Category.values()[i % Category.values().length]
             );
 
@@ -158,7 +160,7 @@ public class Menu {
         System.out.println("\n🔥 5 Test-Auktionen erstellt!");
     }
 
-    // ================= INPUT =================
+// ================= INPUT =================
 
     private String readName() {
         System.out.print("\n📦 Artikelname: ");
@@ -195,9 +197,9 @@ public class Menu {
         return value;
     }
 
-    // ================= BIDDERS =================
+// ================= BIDDERS =================
 
-    private List<Bidder> createBidders() {
+    private List<Bidder> createBidders(String itemName) {
 
         List<Bidder> list = new ArrayList<>();
         Random random = new Random();
@@ -211,14 +213,14 @@ public class Menu {
             ));
         }
 
-        printBiddersTable(list);
+        printBiddersTable(list, itemName);
 
         return list;
     }
 
-    private void printBiddersTable(List<Bidder> list) {
+    private void printBiddersTable(List<Bidder> list, String itemName) {
 
-        System.out.println("\n👥 Bieter Übersicht:");
+        System.out.println("\n📦 " + itemName + " | 👥 Bieter Übersicht:");
         System.out.println("-------------------------------------------------");
 
         System.out.printf("| %-12s | %-12s | %-10s |\n",
@@ -236,7 +238,7 @@ public class Menu {
         System.out.println("-------------------------------------------------");
     }
 
-    // ================= UTILS =================
+// ================= UTILS =================
 
     private String getColor(int i) {
         String[] colors = {
@@ -251,6 +253,12 @@ public class Menu {
     private void waitForEnter() {
         System.out.println("\n⏳ Enter drücken...");
         scanner.nextLine();
+    }
+
+    private void pushUp() {
+        for (int i = 0; i < 30; i++) {
+            System.out.println();
+        }
     }
 
     private void clearScreen() {

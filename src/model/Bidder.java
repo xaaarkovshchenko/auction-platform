@@ -29,39 +29,28 @@ public class Bidder extends User implements Runnable {
     @Override
     public void run() {
 
-
         while (!auction.isFinished()) {
 
-            if (!auction.isActive()) {
-                return;
-            }
+            if (!auction.isActive()) return;
 
             try {
-                Thread.sleep(900);
+                Thread.sleep(600 + random.nextInt(600));
             } catch (InterruptedException e) {
-                //  sofort stoppen wenn Thread beendet wird
                 return;
             }
 
-            if (!auction.isActive() || auction.isFinished()) {
-                return;
-            }
+            if (!auction.isActive() || auction.isFinished()) return;
 
             double price = auction.getCurrentPrice();
 
-            // nur reagieren wenn Preis sich geändert hat
-            if (price == lastSeenPrice) {
-                continue;
-            }
+            if (price == lastSeenPrice) continue;
 
             lastSeenPrice = price;
-
-            if (!auction.isActive()) return;
 
             System.out.printf("%s[CHECK] %s prüft Preis: %.2f€\n",
                     prefix(), name, price);
 
-            //  nicht genug Budget
+            //  нет бюджета
             if (price > budget) {
 
                 if (!"NO_MONEY".equals(lastAction)) {
@@ -73,13 +62,11 @@ public class Bidder extends User implements Runnable {
                 continue;
             }
 
-            double probability = calculateProbability(price);
+            boolean willBid = decide(price);
 
             if (!auction.isActive()) return;
 
-            if (random.nextDouble() < probability) {
-
-                if (!auction.isActive()) return;
+            if (willBid) {
 
                 System.out.printf("%s[BID  ] %s bietet!\n",
                         prefix(), name);
@@ -99,23 +86,56 @@ public class Bidder extends User implements Runnable {
         }
     }
 
-    private double calculateProbability(double price) {
-        double base = 0.3;
+    // =================  AI =================
 
-        switch (type) {
-            case AGGRESSIVE:
-                base = 0.7;
-                break;
-            case CONSERVATIVE:
-                base = 0.3;
-                break;
-            case SNIPER:
-                base = 0.1;
-                break;
+    private boolean decide(double price) {
+
+        return switch (type) {
+            case AGGRESSIVE -> aggressiveStrategy(price);
+            case CONSERVATIVE -> conservativeStrategy(price);
+            case SNIPER -> sniperStrategy(price);
+        };
+    }
+
+    //  AGGRESSIVE
+    private boolean aggressiveStrategy(double price) {
+
+        double threshold = auction.getStartPrice() * 0.85;
+
+        if (price < threshold) {
+            return random.nextDouble() < 0.8;
         }
 
-        return base * (1 - price / auction.getStartPrice());
+        return random.nextDouble() < 0.3;
     }
+
+    //  CONSERVATIVE
+    private boolean conservativeStrategy(double price) {
+
+        double threshold = auction.getStartPrice() * 0.6;
+
+        if (price < threshold) {
+            return random.nextDouble() < 0.7;
+        }
+
+        return false;
+    }
+
+    //  SNIPER
+    private boolean sniperStrategy(double price) {
+
+        double progress =
+                (auction.getStartPrice() - price) /
+                        (auction.getStartPrice() - auction.getMinPrice());
+
+        if (progress < 0.8) {
+            return false;
+        }
+
+        return random.nextDouble() < 0.9;
+    }
+
+    // ================= UTILS =================
 
     public void decreaseBudget(double amount) {
         budget -= amount;
@@ -128,4 +148,5 @@ public class Bidder extends User implements Runnable {
     public BidderType getType() {
         return type;
     }
+
 }
