@@ -5,11 +5,27 @@ import service.*;
 import utils.ConsoleColors;
 import java.util.*;
 
+/**
+ * Die Klasse Menu stellt die Benutzeroberfläche der Anwendung dar.
+ *
+ * Funktionen:
+ * - Anzeige des Hauptmenüs
+ * - Steuerung der Benutzerinteraktion
+ * - Erstellung von Auktionen
+ * - Start der Simulation
+ * - Anzeige des Reports
+ *
+ * Diese Klasse ist der Einstiegspunkt für die Benutzersteuerung.
+ */
 public class Menu {
 
     private Scanner scanner = new Scanner(System.in);
     private AuctionHouse house = AuctionHouse.getInstance();
 
+    /**
+     * Startet das Menü und läuft in einer Endlosschleife,
+     * bis der Benutzer das Programm beendet.
+     */
     public void start() {
 
         while (true) {
@@ -18,6 +34,12 @@ public class Menu {
             printHeader();
 
             int choice = readChoice();
+
+            // 🔥 Fix: ungültige Eingabe ignorieren
+            if (choice == -1) {
+                waitForEnter();
+                continue;
+            }
 
             switch (choice) {
 
@@ -39,8 +61,11 @@ public class Menu {
         }
     }
 
-// ================= HEADER =================
+    // ================= HEADER =================
 
+    /**
+     * Gibt den Menü-Header und die verfügbaren Optionen aus.
+     */
     private void printHeader() {
 
         System.out.println("=================================");
@@ -59,6 +84,11 @@ public class Menu {
         System.out.print("👉 Auswahl: ");
     }
 
+    /**
+     * Liest die Benutzereingabe und validiert sie.
+     *
+     * @return gewählte Menüoption oder -1 bei Fehler
+     */
     private int readChoice() {
         try {
             int choice = scanner.nextInt();
@@ -78,8 +108,11 @@ public class Menu {
         }
     }
 
-// ================= ACTIONS =================
+    // ================= ACTIONS =================
 
+    /**
+     * Startet die Simulation aller aktiven Auktionen.
+     */
     private void startSimulation() {
 
         if (house.getAuctions().isEmpty()) {
@@ -97,6 +130,9 @@ public class Menu {
         }
     }
 
+    /**
+     * Erstellt eine neue Auktion durch Benutzereingaben.
+     */
     private void createAuction() {
 
         try {
@@ -116,7 +152,7 @@ public class Menu {
                     start,
                     min,
                     bidders,
-                    getColor(index)
+                    getColor(index) //
             );
 
             house.addAuction(auction);
@@ -131,6 +167,9 @@ public class Menu {
         }
     }
 
+    /**
+     * Erstellt automatisch 5 Test-Auktionen.
+     */
     private void createTestAuctions() {
 
         Random random = new Random();
@@ -151,7 +190,7 @@ public class Menu {
                     1000 + random.nextInt(2000),
                     500 + random.nextInt(1000),
                     bidders,
-                    getColor(i)
+                    getColor(i) //
             );
 
             house.addAuction(auction);
@@ -160,7 +199,7 @@ public class Menu {
         System.out.println("\n🔥 5 Test-Auktionen erstellt!");
     }
 
-// ================= INPUT =================
+    // ================= INPUT =================
 
     private String readName() {
         System.out.print("\n📦 Artikelname: ");
@@ -197,7 +236,7 @@ public class Menu {
         return value;
     }
 
-// ================= BIDDERS =================
+    // ================= BIDDERS =================
 
     private List<Bidder> createBidders(String itemName) {
 
@@ -238,16 +277,15 @@ public class Menu {
         System.out.println("-------------------------------------------------");
     }
 
-// ================= UTILS =================
+    // ================= UTILS =================
 
+    /**
+     * Gibt eine Farbe basierend auf Index zurück.
+     * Nutzt alle verfügbaren Farben aus ConsoleColors.
+     */
     private String getColor(int i) {
-        String[] colors = {
-                ConsoleColors.RED,
-                ConsoleColors.GREEN,
-                ConsoleColors.YELLOW,
-                ConsoleColors.CYAN
-        };
-        return colors[i % colors.length];
+        return ConsoleColors.BOLD +
+                ConsoleColors.ALL_COLORS[i % ConsoleColors.ALL_COLORS.length];
     }
 
     private void waitForEnter() {

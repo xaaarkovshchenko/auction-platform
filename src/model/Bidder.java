@@ -2,6 +2,14 @@ package model;
 
 import java.util.Random;
 
+/**
+ * Die Klasse Bidder repräsentiert einen Bieter in der Auktion.
+ *
+ * Jeder Bidder läuft als eigener Thread und trifft Entscheidungen,
+ * ob er ein Gebot abgibt oder wartet.
+ *
+ * Das Verhalten wird durch den BidderType (Strategie) bestimmt.
+ */
 public class Bidder extends User implements Runnable {
 
     private double budget;
@@ -12,20 +20,44 @@ public class Bidder extends User implements Runnable {
     private double lastSeenPrice = -1;
     private String lastAction = "";
 
+    /**
+     * Konstruktor für einen Bieter
+     *
+     * @param id     eindeutige ID
+     * @param name   Name des Bieters
+     * @param budget verfügbares Budget
+     * @param type   Strategie des Bieters
+     */
     public Bidder(int id, String name, double budget, BidderType type) {
         super(id, name);
         this.budget = budget;
         this.type = type;
     }
 
+    /**
+     * Setzt die Auktion, an der der Bieter teilnimmt
+     *
+     * @param auction aktuelle Auktion
+     */
     public void setAuction(Auction auction) {
         this.auction = auction;
     }
 
+    /**
+     * Erstellt ein Präfix für die Konsolenausgabe
+     */
     private String prefix() {
         return "[" + auction.getItem().getName() + "] ";
     }
 
+    /**
+     * Hauptlogik des Bieters (Thread)
+     *
+     * Ablauf:
+     * - überprüft regelmäßig den aktuellen Preis
+     * - entscheidet basierend auf Strategie
+     * - gibt ggf. ein Gebot ab
+     */
     @Override
     public void run() {
 
@@ -43,6 +75,7 @@ public class Bidder extends User implements Runnable {
 
             double price = auction.getCurrentPrice();
 
+            // Nur reagieren, wenn sich der Preis geändert hat
             if (price == lastSeenPrice) continue;
 
             lastSeenPrice = price;
@@ -50,7 +83,7 @@ public class Bidder extends User implements Runnable {
             System.out.printf("%s[CHECK] %s prüft Preis: %.2f€\n",
                     prefix(), name, price);
 
-            //  нет бюджета
+            // Prüfen, ob Budget ausreicht
             if (price > budget) {
 
                 if (!"NO_MONEY".equals(lastAction)) {
@@ -66,6 +99,7 @@ public class Bidder extends User implements Runnable {
 
             if (!auction.isActive()) return;
 
+            // Gebot abgeben
             if (willBid) {
 
                 System.out.printf("%s[BID  ] %s bietet!\n",
@@ -76,6 +110,7 @@ public class Bidder extends User implements Runnable {
 
             } else {
 
+                // Warten
                 if (!"WAIT".equals(lastAction)) {
                     lastAction = "WAIT";
 
@@ -86,8 +121,14 @@ public class Bidder extends User implements Runnable {
         }
     }
 
-    // =================  AI =================
+    // ================= AI =================
 
+    /**
+     * Entscheidet basierend auf dem Bietertyp, ob geboten wird
+     *
+     * @param price aktueller Preis
+     * @return true, wenn Gebot abgegeben wird
+     */
     private boolean decide(double price) {
 
         return switch (type) {
@@ -97,7 +138,10 @@ public class Bidder extends User implements Runnable {
         };
     }
 
-    //  AGGRESSIVE
+    /**
+     * Aggressive Strategie:
+     * Bietet früh und häufig
+     */
     private boolean aggressiveStrategy(double price) {
 
         double threshold = auction.getStartPrice() * 0.85;
@@ -109,7 +153,10 @@ public class Bidder extends User implements Runnable {
         return random.nextDouble() < 0.3;
     }
 
-    //  CONSERVATIVE
+    /**
+     * Konservative Strategie:
+     * Wartet auf niedrige Preise
+     */
     private boolean conservativeStrategy(double price) {
 
         double threshold = auction.getStartPrice() * 0.6;
@@ -121,7 +168,10 @@ public class Bidder extends User implements Runnable {
         return false;
     }
 
-    //  SNIPER
+    /**
+     * Sniper Strategie:
+     * Wartet bis zum Ende und bietet dann schnell
+     */
     private boolean sniperStrategy(double price) {
 
         double progress =
@@ -137,16 +187,26 @@ public class Bidder extends User implements Runnable {
 
     // ================= UTILS =================
 
+    /**
+     * Reduziert das Budget nach einem erfolgreichen Kauf
+     *
+     * @param amount Betrag, der abgezogen wird
+     */
     public void decreaseBudget(double amount) {
         budget -= amount;
     }
 
+    /**
+     * Gibt das aktuelle Budget zurück
+     */
     public double getBudget() {
         return budget;
     }
 
+    /**
+     * Gibt den Typ (Strategie) des Bieters zurück
+     */
     public BidderType getType() {
         return type;
     }
-
 }
