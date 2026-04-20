@@ -123,7 +123,7 @@ public class Menu {
             double start = readStartPrice();
             double min = readMinPrice(start);
 
-            // 🔥 FIX: startPrice übergeben
+            // startPrice übergeben
             List<Bidder> bidders = createBidders(name, start);
 
             Item item = new Item(name, category);
@@ -160,7 +160,7 @@ public class Menu {
 
             double start = 1000 + random.nextInt(2000);
 
-            // 🔥 FIX: start übergeben
+            //start übergeben
             List<Bidder> bidders = createBidders(itemName, start);
 
             Item item = new Item(
@@ -310,15 +310,19 @@ public class Menu {
 
         for (int i = 0; i < 5; i++) {
 
-            double budget;
+            double factor;
 
-            switch (i) {
-                case 0 -> budget = startPrice * (1.2 + random.nextDouble() * 0.5);
-                case 1 -> budget = startPrice * (1.0 + random.nextDouble() * 0.3);
-                case 2 -> budget = startPrice * (0.8 + random.nextDouble() * 0.2);
-                case 3 -> budget = startPrice * (0.6 + random.nextDouble() * 0.2);
-                default -> budget = startPrice * (0.4 + random.nextDouble() * 0.2);
+            int type = random.nextInt(4);
+
+            switch (type) {
+
+                case 0 -> factor = 1.2 + random.nextDouble() * 0.6; // reich
+                case 1 -> factor = 0.9 + random.nextDouble() * 0.3; // normal
+                case 2 -> factor = 0.6 + random.nextDouble() * 0.3; // arm
+                default -> factor = 0.7 + random.nextDouble() * 0.1; // sniper (knapp)
             }
+
+            double budget = startPrice * factor;
 
             list.add(new Bidder(
                     i,
