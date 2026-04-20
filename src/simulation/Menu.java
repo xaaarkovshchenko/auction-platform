@@ -35,7 +35,6 @@ public class Menu {
 
             int choice = readChoice();
 
-            // 🔥 Fix: ungültige Eingabe ignorieren
             if (choice == -1) {
                 waitForEnter();
                 continue;
@@ -44,11 +43,8 @@ public class Menu {
             switch (choice) {
 
                 case 1 -> createAuction();
-
                 case 2 -> startSimulation();
-
                 case 3 -> Report.print(house);
-
                 case 4 -> createTestAuctions();
 
                 case 0 -> {
@@ -63,9 +59,6 @@ public class Menu {
 
     // ================= HEADER =================
 
-    /**
-     * Gibt den Menü-Header und die verfügbaren Optionen aus.
-     */
     private void printHeader() {
 
         System.out.println("=================================");
@@ -84,11 +77,6 @@ public class Menu {
         System.out.print("👉 Auswahl: ");
     }
 
-    /**
-     * Liest die Benutzereingabe und validiert sie.
-     *
-     * @return gewählte Menüoption oder -1 bei Fehler
-     */
     private int readChoice() {
         try {
             int choice = scanner.nextInt();
@@ -110,9 +98,6 @@ public class Menu {
 
     // ================= ACTIONS =================
 
-    /**
-     * Startet die Simulation aller aktiven Auktionen.
-     */
     private void startSimulation() {
 
         if (house.getAuctions().isEmpty()) {
@@ -130,9 +115,6 @@ public class Menu {
         }
     }
 
-    /**
-     * Erstellt eine neue Auktion durch Benutzereingaben.
-     */
     private void createAuction() {
 
         try {
@@ -152,7 +134,7 @@ public class Menu {
                     start,
                     min,
                     bidders,
-                    getColor(index) //
+                    getColor(index)
             );
 
             house.addAuction(auction);
@@ -167,9 +149,6 @@ public class Menu {
         }
     }
 
-    /**
-     * Erstellt automatisch 5 Test-Auktionen.
-     */
     private void createTestAuctions() {
 
         Random random = new Random();
@@ -190,7 +169,7 @@ public class Menu {
                     1000 + random.nextInt(2000),
                     500 + random.nextInt(1000),
                     bidders,
-                    getColor(i) //
+                    getColor(i)
             );
 
             house.addAuction(auction);
@@ -201,39 +180,121 @@ public class Menu {
 
     // ================= INPUT =================
 
+    /**
+     * Liest den Namen eines Artikels mit max. 3 Versuchen.
+     * Bedingungen:
+     * - mindestens 2 Zeichen
+     * - darf nicht leer sein
+     */
     private String readName() {
-        System.out.print("\n📦 Artikelname: ");
-        return scanner.nextLine();
+
+        for (int attempt = 1; attempt <= 3; attempt++) {
+
+            System.out.print("\n📦 Artikelname: ");
+            String name = scanner.nextLine().trim();
+
+            if (name.length() >= 2) {
+                return name;
+            }
+
+            System.out.println("❌ Name muss mindestens 2 Zeichen haben! Versuch " + attempt + "/3");
+        }
+
+        throw new RuntimeException("🚫 Zu viele falsche Eingaben!");
     }
 
+    /**
+     * Kategorie mit max. 3 Versuchen
+     */
     private Category readCategory() {
 
         Category[] categories = Category.values();
 
-        System.out.println("\n📂 Kategorie wählen:");
+        for (int attempt = 1; attempt <= 3; attempt++) {
 
-        for (int i = 0; i < categories.length; i++) {
-            System.out.println(i + " -> " + categories[i]);
+            System.out.println("\n📂 Kategorie wählen:");
+
+            for (int i = 0; i < categories.length; i++) {
+                System.out.println(i + " -> " + categories[i]);
+            }
+
+            try {
+                int choice = scanner.nextInt();
+                scanner.nextLine();
+
+                if (choice >= 0 && choice < categories.length) {
+                    return categories[choice];
+                }
+
+            } catch (InputMismatchException e) {
+                scanner.nextLine();
+            }
+
+            System.out.println("❌ Ungültige Eingabe! Versuch " + attempt + "/3");
         }
 
-        int choice = scanner.nextInt();
-        scanner.nextLine();
-
-        return categories[Math.max(0, Math.min(choice, categories.length - 1))];
+        throw new RuntimeException("🚫 Zu viele falsche Eingaben!");
     }
 
+    /**
+     * Startpreis mit max. 3 Versuchen
+     * Liest den Startpreis mit max. 3 Versuchen.
+     * Bedingungen:
+     * - muss größer als 2 sein
+     * - darf nicht negativ sein
+     */
     private double readStartPrice() {
-        System.out.print("💰 Startpreis: ");
-        double value = scanner.nextDouble();
-        scanner.nextLine();
-        return value;
+
+        for (int attempt = 1; attempt <= 3; attempt++) {
+
+            System.out.print("💰 Startpreis: ");
+
+            try {
+                double value = scanner.nextDouble();
+                scanner.nextLine();
+
+                if (value > 2) {
+                    return value;
+                }
+
+            } catch (InputMismatchException e) {
+                scanner.nextLine();
+            }
+
+            System.out.println("❌ Startpreis muss größer als 2€ sein! Versuch " + attempt + "/3");
+        }
+
+        throw new RuntimeException("🚫 Zu viele falsche Eingaben!");
     }
 
+    /**
+     * Liest den Mindestpreis mit max. 3 Versuchen.
+     * Bedingungen:
+     * - > 0
+     * - mindestens 1€ kleiner als Startpreis
+     */
     private double readMinPrice(double start) {
-        System.out.print("🔻 Mindestpreis: ");
-        double value = scanner.nextDouble();
-        scanner.nextLine();
-        return value;
+
+        for (int attempt = 1; attempt <= 3; attempt++) {
+
+            System.out.print("🔻 Mindestpreis: ");
+
+            try {
+                double value = scanner.nextDouble();
+                scanner.nextLine();
+
+                if (value > 0 && value <= start - 1) {
+                    return value;
+                }
+
+            } catch (InputMismatchException e) {
+                scanner.nextLine();
+            }
+
+            System.out.println("❌ Mindestpreis muss mindestens 1€ kleiner als Startpreis sein und > 0! Versuch " + attempt + "/3");
+        }
+
+        throw new RuntimeException("🚫 Zu viele falsche Eingaben!");
     }
 
     // ================= BIDDERS =================
@@ -279,10 +340,6 @@ public class Menu {
 
     // ================= UTILS =================
 
-    /**
-     * Gibt eine Farbe basierend auf Index zurück.
-     * Nutzt alle verfügbaren Farben aus ConsoleColors.
-     */
     private String getColor(int i) {
         return ConsoleColors.BOLD +
                 ConsoleColors.ALL_COLORS[i % ConsoleColors.ALL_COLORS.length];
