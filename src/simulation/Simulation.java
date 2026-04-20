@@ -29,4 +29,4 @@ public class Simulation {
         Menu menu = new Menu();
         menu.start();
     }
-}1
+}

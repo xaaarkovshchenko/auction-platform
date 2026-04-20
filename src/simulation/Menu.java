@@ -123,7 +123,8 @@ public class Menu {
             double start = readStartPrice();
             double min = readMinPrice(start);
 
-            List<Bidder> bidders = createBidders(name);
+            // 🔥 FIX: startPrice übergeben
+            List<Bidder> bidders = createBidders(name, start);
 
             Item item = new Item(name, category);
 
@@ -157,7 +158,10 @@ public class Menu {
 
             String itemName = "Item_" + (i + 1);
 
-            List<Bidder> bidders = createBidders(itemName);
+            double start = 1000 + random.nextInt(2000);
+
+            // 🔥 FIX: start übergeben
+            List<Bidder> bidders = createBidders(itemName, start);
 
             Item item = new Item(
                     itemName,
@@ -166,7 +170,7 @@ public class Menu {
 
             Auction auction = new Auction(
                     item,
-                    1000 + random.nextInt(2000),
+                    start,
                     500 + random.nextInt(1000),
                     bidders,
                     getColor(i)
@@ -299,16 +303,27 @@ public class Menu {
 
     // ================= BIDDERS =================
 
-    private List<Bidder> createBidders(String itemName) {
+    private List<Bidder> createBidders(String itemName, double startPrice) {
 
         List<Bidder> list = new ArrayList<>();
         Random random = new Random();
 
         for (int i = 0; i < 5; i++) {
+
+            double budget;
+
+            switch (i) {
+                case 0 -> budget = startPrice * (1.2 + random.nextDouble() * 0.5);
+                case 1 -> budget = startPrice * (1.0 + random.nextDouble() * 0.3);
+                case 2 -> budget = startPrice * (0.8 + random.nextDouble() * 0.2);
+                case 3 -> budget = startPrice * (0.6 + random.nextDouble() * 0.2);
+                default -> budget = startPrice * (0.4 + random.nextDouble() * 0.2);
+            }
+
             list.add(new Bidder(
                     i,
                     "Player_" + (i + 1),
-                    500 + random.nextInt(2000),
+                    Math.round(budget),
                     BidderType.values()[random.nextInt(3)]
             ));
         }
