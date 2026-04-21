@@ -115,6 +115,11 @@ public class Auction implements Runnable {
 
             currentPrice = Math.round(newPrice * 100.0) / 100.0;
 
+            // FIX: wenn sich der Preis nicht mehr ändert ,dann stoppen
+            if (currentPrice == oldPrice) {
+                break;
+            }
+
             priceHistory.add(currentPrice);
 
             System.out.println(prefix() + "📉 Preisupdate:");

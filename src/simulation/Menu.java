@@ -160,7 +160,10 @@ public class Menu {
 
             double start = 1000 + random.nextInt(2000);
 
-            //start übergeben
+            // Mindestpreis abhängig vom Startpreis (immer kleiner)
+            double min = start * (0.4 + random.nextDouble() * 0.4);
+
+            // start übergeben für realistische Budgets
             List<Bidder> bidders = createBidders(itemName, start);
 
             Item item = new Item(
@@ -171,7 +174,7 @@ public class Menu {
             Auction auction = new Auction(
                     item,
                     start,
-                    500 + random.nextInt(1000),
+                    min,
                     bidders,
                     getColor(i)
             );
