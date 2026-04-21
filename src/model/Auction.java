@@ -23,16 +23,21 @@ public class Auction implements Runnable {
     private double minPrice;
     private double currentPrice;
 
+    //volatile bedeutet:
+    //Eine Variable wird immer direkt aus dem Hauptspeicher gelesen und geschrieben.
+    //Threads sehen immer den aktuellen Wert.
     private volatile boolean active = true;
     private volatile boolean finished = false;
 
     private List<Double> priceHistory = new ArrayList<>();
     private boolean finalRound = false;
 
+    // jeder Bieter ist eigener Thread
     private List<Bidder> bidders;
     private Bidder winner;
     private List<Thread> bidderThreads = new ArrayList<>();
 
+    //verhindert durcheinander in Konsole
     private static final Object PRINT_LOCK = new Object();
     private String color;
 
@@ -87,6 +92,7 @@ public class Auction implements Runnable {
         // Haupt-Auktionsschleife
         while (active) {
 
+            //Preisveränderung nach jeder secunde(1000)
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {

@@ -17,8 +17,8 @@ public class Bidder extends User implements Runnable {
     private Auction auction;
     private Random random = new Random();
 
-    private double lastSeenPrice = -1;
-    private String lastAction = "";
+    private double lastSeenPrice = -1;  //merkt sich letzten Preis
+    private String lastAction = "";    //vermeidet Spam in Konsole
 
     /**
      * Konstruktor für einen Bieter
@@ -66,7 +66,7 @@ public class Bidder extends User implements Runnable {
             if (!auction.isActive()) return;
 
             try {
-                Thread.sleep(600 + random.nextInt(600));
+                Thread.sleep(600 + random.nextInt(600)); // wartet zwischen 600ms – 1200ms
             } catch (InterruptedException e) {
                 return;
             }
@@ -76,7 +76,7 @@ public class Bidder extends User implements Runnable {
             double price = auction.getCurrentPrice();
 
             // Nur reagieren, wenn sich der Preis geändert hat
-            if (price == lastSeenPrice) continue;
+            if (price == lastSeenPrice) continue;   //verhindert:Spam + unnötige Entscheidungen
 
             lastSeenPrice = price;
 

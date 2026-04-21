@@ -72,7 +72,7 @@ public class Menu {
         System.out.println("2️⃣  Simulation starten");
         System.out.println("3️⃣  Report anzeigen");
         System.out.println("4️⃣  Test: 5 Auktionen erstellen");
-        System.out.println("0️⃣  Exit");
+        System.out.println("\n0️⃣  Exit");
         System.out.println("=================================");
         System.out.print("👉 Auswahl: ");
     }
@@ -242,10 +242,6 @@ public class Menu {
 
     /**
      * Startpreis mit max. 3 Versuchen
-     * Liest den Startpreis mit max. 3 Versuchen.
-     * Bedingungen:
-     * - muss größer als 2 sein
-     * - darf nicht negativ sein
      */
     private double readStartPrice() {
 
