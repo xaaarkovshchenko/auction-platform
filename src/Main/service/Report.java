@@ -26,7 +26,7 @@ public class Report {
         List<Auction> auctions = house.getHistory();
 
         System.out.println("\n📊 =============================== 📊");
-        System.out.println("📊           REPORT               📊");
+        System.out.println("📊           REPORT                📊");
         System.out.println("📊 =============================== 📊\n");
 
         if (auctions.isEmpty()) {

@@ -121,7 +121,6 @@ public class Bidder extends User implements Runnable {
         }
     }
 
-    // ================= AI =================
 
     /**
      * Entscheidet basierend auf dem Bietertyp, ob geboten wird
@@ -147,22 +146,17 @@ public class Bidder extends User implements Runnable {
         double progress =
                 (auction.getStartPrice() - price) /
                         (auction.getStartPrice() - auction.getMinPrice());
-        //SEHR früh (0–20%) → deutlich schwächer
         if (progress < 0.2) {
             return random.nextDouble() < 0.4;
         }
 
-        // Früh (20–40%) → moderat
         if (progress < 0.4) {
             return random.nextDouble() < 0.3;
         }
 
-        // Mittelphase (40–60%) → normal
         if (progress < 0.6) {
-            return random.nextDouble() < 0.35;
+            return random.nextDouble() < 0.3;
         }
-
-        // Spätphase (>60%) → verliert Interesse
         return random.nextDouble() < 0.12;
     }
 
